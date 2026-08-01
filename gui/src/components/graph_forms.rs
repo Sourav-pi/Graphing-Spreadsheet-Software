@@ -2,47 +2,6 @@ use super::error_display::{show_error, ErrorContext, ErrorType};
 use super::spreadsheet::SheetContext;
 use dioxus::prelude::*;
 
-// Common style for input containers
-const INPUT_CONTAINER_STYLE: &str = r#"
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 16px;
-    gap: 12px;
-    width: 90%;
-"#;
-
-const INPUT_STYLE: &str = r#"
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    width: 100%;
-"#;
-
-const LABEL_STYLE: &str = r#"
-    font-weight: bold;
-    margin-bottom: 4px;
-"#;
-
-const SUBMIT_BUTTON_STYLE: &str = r#"
-    background-color: rgb(36, 117, 247);
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin-top: 16px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition-duration: 0.2s;
-    &:hover {
-        background-color:rgb(92, 141, 255);
-    }
-"#;
-
 // Helper component for each type of graph input
 #[component]
 pub fn LineChartForm() -> Element {
@@ -103,41 +62,41 @@ pub fn LineChartForm() -> Element {
         };
     } else {
         rsx! {
-            div { style: INPUT_CONTAINER_STYLE,
+            div { class: "form-grid",
                 div {
-                    div { style: LABEL_STYLE, "Cell Range (e.g., A1:A10)" }
+                    div { class: "form-label", "Cell Range (e.g., A1:A10)" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Enter cell range",
                         oninput: move |evt| range.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "X-Axis Label" }
+                    div { class: "form-label", "X-Axis Label" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "X-Axis",
                         oninput: move |evt| x_label.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "Y-Axis Label" }
+                    div { class: "form-label", "Y-Axis Label" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Y-Axis",
                         oninput: move |evt| y_label.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "Chart Title (Optional)" }
+                    div { class: "form-label", "Chart Title (Optional)" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Enter title",
                         oninput: move |evt| title.set(evt.value().clone())
                     }
                 }
                 button {
-                    style: SUBMIT_BUTTON_STYLE,
+                    class: "form-submit",
                     onclick: move |_| {
                         // Handle submission
                         println!("Line chart with range: {}, x: {}, y: {}, title: {}, labels: {}",
@@ -214,41 +173,41 @@ pub fn BarChartForm() -> Element {
         };
     } else {
         rsx! {
-            div { style: INPUT_CONTAINER_STYLE,
+            div { class: "form-grid",
                 div {
-                    div { style: LABEL_STYLE, "Cell Range (e.g., A1:A10)" }
+                    div { class: "form-label", "Cell Range (e.g., A1:A10)" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Enter cell range",
                         oninput: move |evt| range.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "Y-Axis Label" }
+                    div { class: "form-label", "Y-Axis Label" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Y-Axis",
                         oninput: move |evt| y_label.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "Bar Labels (Comma-separated)" }
+                    div { class: "form-label", "Bar Labels (Comma-separated)" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Comma-separated labels",
                         oninput: move |evt| bar_labels.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "Chart Title (Optional)" }
+                    div { class: "form-label", "Chart Title (Optional)" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Enter title",
                         oninput: move |evt| title.set(evt.value().clone())
                     }
                 }
                 button {
-                    style: SUBMIT_BUTTON_STYLE,
+                    class: "form-submit",
                     onclick: move |_| {
                         println!("Bar chart with range: {}, labels: {}, y: {}, title: {}",
                                 range.cloned(), bar_labels.cloned(), y_label.cloned(), title.cloned());
@@ -319,48 +278,48 @@ pub fn PieChartForm() -> Element {
         };
     } else {
         rsx! {
-            div { style: INPUT_CONTAINER_STYLE,
+            div { class: "form-grid",
                 div {
-                    div { style: LABEL_STYLE, "Cell Range (e.g., A1:A10,B1:B10)" }
+                    div { class: "form-label", "Cell Range (e.g., A1:A10,B1:B10)" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Enter cell range",
                         oninput: move |evt| range.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "Chart Title (Optional)" }
+                    div { class: "form-label", "Chart Title (Optional)" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Enter title",
                         oninput: move |evt| title.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "Slice Labels (Comma-separated)" }
+                    div { class: "form-label", "Slice Labels (Comma-separated)" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Comma-separated labels",
                         oninput: move |evt| slice_labels.set(evt.value().clone())
                     }
                 }
                 // Keep the placeholder divs for consistent layout
                 div { style : "visibility: hidden ",
-                    div { style: LABEL_STYLE, "placeholder" }
+                    div { class: "form-label", "placeholder" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "placeholder"
                     }
                 }
                 div { style : "visibility: hidden ",
-                    div { style: LABEL_STYLE, "placeholder" }
+                    div { class: "form-label", "placeholder" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "placeholder"
                     }
                 }
                 button {
-                    style: SUBMIT_BUTTON_STYLE,
+                    class: "form-submit",
                     onclick: move |_| {
                         println!("Pie chart with range: {}, title: {}, labels: {}",
                                 range.cloned(), title.cloned(), slice_labels.cloned());
@@ -439,49 +398,49 @@ pub fn ScatterPlotForm() -> Element {
         };
     } else {
         rsx! {
-            div { style: INPUT_CONTAINER_STYLE,
+            div { class: "form-grid",
                 div {
-                    div { style: LABEL_STYLE, "X-Axis Cell Range (e.g., A1:A10)" }
+                    div { class: "form-label", "X-Axis Cell Range (e.g., A1:A10)" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Enter X-axis cell range",
                         oninput: move |evt| x_range.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "Y-Axis Cell Range (e.g., B1:B10)" }
+                    div { class: "form-label", "Y-Axis Cell Range (e.g., B1:B10)" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Enter Y-axis cell range",
                         oninput: move |evt| y_range.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "X-Axis Label" }
+                    div { class: "form-label", "X-Axis Label" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "X-Axis",
                         oninput: move |evt| x_label.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "Y-Axis Label" }
+                    div { class: "form-label", "Y-Axis Label" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Y-Axis",
                         oninput: move |evt| y_label.set(evt.value().clone())
                     }
                 }
                 div {
-                    div { style: LABEL_STYLE, "Chart Title (Optional)" }
+                    div { class: "form-label", "Chart Title (Optional)" }
                     input {
-                        style: INPUT_STYLE,
+                        class: "form-input",
                         placeholder: "Enter title",
                         oninput: move |evt| title.set(evt.value().clone())
                     }
                 }
                 button {
-                    style: SUBMIT_BUTTON_STYLE,
+                    class: "form-submit",
                     onclick: move |_| {
                         println!("Scatter plot with x-range: {}, y-range: {}, x-label: {}, y-label: {}, title: {}",
                                 x_range.cloned(), y_range.cloned(), x_label.cloned(), y_label.cloned(), title.cloned());

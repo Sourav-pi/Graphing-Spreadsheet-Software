@@ -48,9 +48,10 @@ pub fn ContextMenu() -> Element {
 
                 rsx! {
                     div {
-                        style: "position: fixed; left: {x_cord}px; top: {y_cord}px; background-color: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000; padding: 5px 0;",
+                        class: "context-menu",
+                        style: "position: fixed; left: {x_cord}px; top: {y_cord}px;",
                         div {
-                            style: {"padding: 8px 16px; cursor: pointer; &:hover { background-color: #f0f0f0; }"},
+                            class: "context-menu-item",
                             onclick: move |_| {
                                 copied_row.set(Some(row));
                                 context_menu.set(None);
@@ -58,11 +59,7 @@ pub fn ContextMenu() -> Element {
                             "Copy Row"
                         }
                         div {
-                            style: if has_copied_row {
-                                {"padding: 8px 16px; cursor: pointer; &:hover { background-color: #f0f0f0; }"}
-                            } else {
-                                "padding: 8px 16px; cursor: not-allowed; color: #ccc;"
-                            },
+                            class: if has_copied_row { "context-menu-item" } else { "context-menu-item disabled" },
                             onclick: move |_| {
                                 if let Some(source_row) = *copied_row.read() {
                                     if let Ok(mut sheet_locked) = sheet.cloned().lock() {
@@ -89,7 +86,7 @@ pub fn ContextMenu() -> Element {
                             "Paste Row"
                         }
                         div {
-                            style: {"padding: 8px 16px; cursor: pointer; &:hover { background-color: #f0f0f0; }"},
+                            class: "context-menu-item",
                             onclick: move |_| {
                                 if let Ok(mut sheet_locked) = sheet.cloned().lock() {
                                     sheet_locked.clear_row(row as usize);
@@ -109,9 +106,10 @@ pub fn ContextMenu() -> Element {
 
                 rsx! {
                     div {
-                        style: "position: fixed; left: {x_cord}px; top: {y_cord}px; background-color: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000; padding: 5px 0;",
+                        class: "context-menu",
+                        style: "position: fixed; left: {x_cord}px; top: {y_cord}px;",
                         div {
-                            style: {"padding: 8px 16px; cursor: pointer; &:hover { background-color: #f0f0f0; }"},
+                            class: "context-menu-item",
                             onclick: move |_| {
                                 // Store which column was copied
                                 copied_col.set(Some(col));
@@ -120,11 +118,7 @@ pub fn ContextMenu() -> Element {
                             "Copy Column"
                         }
                         div {
-                            style: if has_copied_col {
-                                {"padding: 8px 16px; cursor: pointer; &:hover { background-color: #f0f0f0; }"}
-                            } else {
-                                "padding: 8px 16px; cursor: not-allowed; color: #ccc;"
-                            },
+                            class: if has_copied_col { "context-menu-item" } else { "context-menu-item disabled" },
                             onclick: move |_| {
                                 if let Some(source_col) = *copied_col.read() {
                                     if let Ok(mut sheet_locked) = sheet.cloned().lock() {
@@ -151,7 +145,7 @@ pub fn ContextMenu() -> Element {
                             "Paste Column"
                         }
                         div {
-                            style: {"padding: 8px 16px; cursor: pointer; &:hover { background-color: #f0f0f0; }"},
+                            class: "context-menu-item",
                             onclick: move |_| {
                                 if let Ok(mut sheet_locked) = sheet.cloned().lock() {
                                     sheet_locked.clear_col(col as usize);
@@ -170,9 +164,10 @@ pub fn ContextMenu() -> Element {
 
                 rsx! {
                     div {
-                        style: "position: fixed; left: {x_cord}px; top: {y_cord}px; background-color: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000; padding: 5px 0;",
+                        class: "context-menu",
+                        style: "position: fixed; left: {x_cord}px; top: {y_cord}px;",
                         div {
-                            style: {"padding: 8px 16px; cursor: pointer; &:hover { background-color: #f0f0f0; }"},
+                            class: "context-menu-item",
                             onclick: move |_| {
                                 // Store which cell was copied
                                 copied_cell.set(Some((row, col)));
@@ -181,11 +176,7 @@ pub fn ContextMenu() -> Element {
                             "Copy Cell"
                         }
                         div {
-                            style: if has_copied_cell {
-                               { "padding: 8px 16px; cursor: pointer; &:hover { background-color: #f0f0f0; }"}
-                            } else {
-                                "padding: 8px 16px; cursor: not-allowed; color: #ccc;"
-                            },
+                            class: if has_copied_cell { "context-menu-item" } else { "context-menu-item disabled" },
                             onclick: move |_| {
                                 if let Some((source_row, source_col)) = *copied_cell.read() {
                                     if let Ok(mut sheet_locked) = sheet.cloned().lock() {
@@ -217,7 +208,7 @@ pub fn ContextMenu() -> Element {
                         }
 
                         div {
-                            style: {"padding: 8px 16px; cursor: pointer; &:hover { background-color: #f0f0f0; }"},
+                            class: "context-menu-item",
                             onclick: move |_| {
                                 if let Ok(mut sheet_locked) = sheet.cloned().lock() {
                                     sheet_locked.clear_cell(row as usize, col as usize);

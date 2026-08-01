@@ -13,51 +13,6 @@ const NEWFILE_ICON: Asset = asset!("assets/newfile.png");
 const LOAD_CSV_ICON: Asset = asset!("assets/load_csv.png");
 const SAVE_CSV_ICON: Asset = asset!("assets/save_csv.png");
 
-const TOOLBAR_STYLE: &str = "
-    height: 50px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    padding-left: 25px;
-   ";
-
-const BUTTON_STYLE: &str = "
-    border: none;
-    color: black;
-    padding: 5px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    cursor: pointer;
-    border-radius: 4px;
-    transition-duration: 0.4s;
-    background-color: #f0f0f0;
-    ";
-
-const SEARCH_CONTAINER_STYLE: &str = "
-    display: flex;
-    align-items: center;
-    margin-right: 20px;
-    ";
-
-const SEARCH_INPUT_STYLE: &str = "
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px 0px 0px 4px;
-    font-size: 14px;
-    width: 80px;
-    ";
-
-const SEARCH_BUTTON_STYLE: &str = "
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 0 4px 4px 0;
-    padding: 6px 12px;
-    margin-left: -1px;
-    cursor: pointer;
-    height: 31px;
-    ";
-
 #[derive(Props, PartialEq, Clone)]
 pub struct ToolbarProps {
     pub num_rows: usize,
@@ -77,11 +32,11 @@ pub fn Toolbar(props: ToolbarProps) -> Element {
     let mut sheetversion = use_context::<SheetVersionContext>();
 
     rsx! {
-      div {style : TOOLBAR_STYLE,
+      div { class: "toolbar",
       // Search bar
-      div { style: SEARCH_CONTAINER_STYLE,
+      div { class: "search-group",
           input {
-              style: SEARCH_INPUT_STYLE,
+              class: "search-input",
               placeholder: "Cell Number",
               value: "{search_term}",
               oninput: move |evt| search_term.set(evt.value().clone()),
@@ -104,7 +59,7 @@ pub fn Toolbar(props: ToolbarProps) -> Element {
               }
           }
           button {
-              style: SEARCH_BUTTON_STYLE,
+              class: "search-btn",
               onclick: move |_| {
 
                   let (a ,b) = convert_to_index(search_term.cloned());
@@ -124,20 +79,21 @@ pub fn Toolbar(props: ToolbarProps) -> Element {
               "GO"
           }
       }
-      button { style: BUTTON_STYLE,
-
-        img {
-            src: "{NEWFILE_ICON}",
-            alt: "New File",
-            style: "width: 30px; height: 30px;",
-            onclick: move |_| {
-                let new_sheet = Sheet::new(1000, 18279);
-                sheet.set(Arc::new(Mutex::new(new_sheet)));
-                sheetversion.set(0);
-            }
-        }
-    },
-      button { style: BUTTON_STYLE,
+      div { class: "toolbar-divider" }
+      button {
+          class: "toolbar-btn",
+          onclick: move |_| {
+              let new_sheet = Sheet::new(1000, 18279);
+              sheet.set(Arc::new(Mutex::new(new_sheet)));
+              sheetversion.set(0);
+          },
+          img {
+              src: "{NEWFILE_ICON}",
+              alt: "New File",
+              class: "toolbar-icon",
+          }
+      },
+      button { class: "toolbar-btn",
           onclick: move |_| {
               let path = std::env::current_dir().unwrap();
 
@@ -168,10 +124,10 @@ pub fn Toolbar(props: ToolbarProps) -> Element {
           img {
               src: "{OPEN_ICON}",
               alt: "Open",
-              style: "width: 30px; height: 30px;"
+              class: "toolbar-icon"
           }
       },
-      button { style: BUTTON_STYLE,
+      button { class: "toolbar-btn",
           onclick: move |_| {
               let path = std::env::current_dir().unwrap();
               let res = rfd::FileDialog::new().add_filter("spreadsheet", &["ss"])
@@ -201,21 +157,22 @@ pub fn Toolbar(props: ToolbarProps) -> Element {
           img {
               src: "{SAVE_ICON}",
               alt: "Save",
-              style: "width: 30px; height: 30px;"
+              class: "toolbar-icon"
           }
       },
-      button { style: BUTTON_STYLE,
-
+      button {
+          class: "toolbar-btn",
+          onclick: move |_| {
+              is_open.set(true);
+          },
           img {
-              onclick: move |_| {
-                  is_open.set(true);
-              },
               src: "{VISUALIZE_ICON}",
               alt: "Visualize",
-              style: "width: 30px; height: 30px;"
+              class: "toolbar-icon"
           }
       },
-      button { style: BUTTON_STYLE,
+      div { class: "toolbar-divider" }
+      button { class: "toolbar-btn",
         onclick: move |_| {
         let path = std::env::current_dir().unwrap();
 
@@ -243,10 +200,10 @@ pub fn Toolbar(props: ToolbarProps) -> Element {
         img {
             src: "{LOAD_CSV_ICON}",
             alt: "Visualize",
-            style: "width: 30px; height: 30px;"
+            class: "toolbar-icon"
         }
     },
-      button { style: BUTTON_STYLE,
+      button { class: "toolbar-btn",
         onclick: move |_| {
             let path = std::env::current_dir().unwrap();
             let res = rfd::FileDialog::new().add_filter("csv", &["csv"])
@@ -274,7 +231,7 @@ pub fn Toolbar(props: ToolbarProps) -> Element {
         img {
             src: "{SAVE_CSV_ICON}",
             alt: "Visualize",
-            style: "width: 30px; height: 30px;"
+            class: "toolbar-icon"
         }
     },
       }

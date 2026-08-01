@@ -1,3 +1,66 @@
+/* ==========================================================================
+   Design tokens
+   ========================================================================== */
+
+:root {
+    --bg: #ffffff;
+    --bg-subtle: #f8f9fb;
+    --bg-muted: #f0f1f4;
+    --border: #e3e5e9;
+    --border-strong: #d3d6dc;
+
+    --text: #1c1e21;
+    --text-secondary: #5b616e;
+    --text-muted: #8b909a;
+    --text-on-accent: #ffffff;
+
+    --accent: #3b5bfd;
+    --accent-hover: #2c47d9;
+    --accent-soft: #eef1ff;
+    --accent-soft-hover: #e0e5ff;
+
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+    --danger-border: #fecaca;
+    --danger-text: #991b1b;
+
+    --warning: #d97706;
+    --warning-bg: #fffbeb;
+    --warning-border: #fde68a;
+    --warning-text: #92400e;
+
+    --info: #0284c7;
+    --info-bg: #f0f9ff;
+    --info-border: #bae6fd;
+    --info-text: #075985;
+
+    --success: #16a34a;
+    --success-bg: #f0fdf4;
+    --success-border: #bbf7d0;
+    --success-text: #166534;
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 14px;
+    --radius-full: 999px;
+
+    --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+    --shadow-md: 0 4px 14px rgba(16, 24, 40, 0.10);
+    --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.18);
+
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto,
+        Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+}
+
+/* ==========================================================================
+   Reset
+   ========================================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
 html {
     height: 100vh;
 }
@@ -6,5 +69,583 @@ body {
     width: 100%;
     height: 100%;
     margin: 0;
-    padding: 0 120px;
+    padding: 0;
+    font-family: var(--font-sans);
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+    font-family: inherit;
+}
+
+/* ==========================================================================
+   App header
+   ========================================================================== */
+
+.app-header {
+    width: 100vw;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+}
+
+.app-header-bar {
+    height: 56px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.app-header-left {
+    display: flex;
+    gap: 14px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.app-logo {
+    width: 32px;
+    height: 32px;
+}
+
+.app-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* ==========================================================================
+   Toolbar
+   ========================================================================== */
+
+.toolbar {
+    height: 52px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 26px;
+    background: var(--border);
+    margin: 0 8px;
+}
+
+.toolbar-btn {
+    border: 1px solid transparent;
+    color: var(--text);
+    padding: 6px;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    background-color: transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.toolbar-btn:hover {
+    background-color: var(--bg-muted);
+}
+
+.toolbar-btn:active {
+    background-color: var(--accent-soft);
+    border-color: var(--accent-soft-hover);
+}
+
+.toolbar-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.toolbar-icon {
+    width: 22px;
+    height: 22px;
+    pointer-events: none;
+}
+
+.search-group {
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.search-input {
+    padding: 7px 12px;
+    border: 1px solid var(--border-strong);
+    border-right: none;
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    font-size: 13px;
+    width: 96px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    z-index: 1;
+    position: relative;
+}
+
+.search-btn {
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-strong);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.search-btn:hover {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: var(--text-on-accent);
+}
+
+/* ==========================================================================
+   Formula bar
+   ========================================================================== */
+
+.formula-bar {
+    width: 100%;
+    height: 38px;
+    background-color: var(--bg-subtle);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 10px;
+}
+
+.cell-ref-chip {
+    flex: 0 0 auto;
+    min-width: 64px;
+    text-align: center;
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+}
+
+.formula-input {
+    flex: 1 1 auto;
+    padding: 6px 10px;
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    height: 26px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.formula-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ==========================================================================
+   Grid & cells
+   ========================================================================== */
+
+.grid-container {
+    overflow: hidden;
+    height: calc(100vh - 94px);
+    width: 100%;
+    display: block;
+    position: relative;
+    background: var(--bg);
+}
+
+.spreadsheet-table {
+    display: table;
+    min-width: max-content;
+    border-collapse: collapse;
+}
+
+.cell-header {
+    height: 30px;
+    border: 1px solid var(--border);
+    background-color: var(--bg-subtle);
+    color: var(--text-secondary);
+    font-weight: 600;
+    outline: none;
+    text-align: center;
+    font-size: 13px;
+}
+
+.cell-input {
+    height: 30px;
+    border: 1px solid var(--border);
+    outline: none;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+    transition: background-color 0.1s ease, box-shadow 0.1s ease;
+}
+
+.cell-input:hover {
+    background-color: var(--bg-subtle);
+}
+
+.cell-input.selected,
+.cell-input:focus {
+    border: 1px solid var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+    background-color: var(--bg);
+    position: relative;
+    z-index: 2;
+}
+
+/* ==========================================================================
+   Grid navigation controls
+   ========================================================================== */
+
+.nav-controls {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    z-index: 100;
+}
+
+.nav-btn {
+    width: 38px;
+    height: 38px;
+    background-color: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-full);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nav-btn:hover:not(:disabled) {
+    background-color: var(--accent);
+    color: var(--text-on-accent);
+    box-shadow: var(--shadow-md);
+}
+
+.nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.page-info {
+    background-color: var(--bg);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Context menu
+   ========================================================================== */
+
+.context-menu {
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    padding: 6px;
+    min-width: 150px;
+    animation: menu-in 0.1s ease-out;
+}
+
+@keyframes menu-in {
+    from {
+        opacity: 0;
+        transform: scale(0.97) translateY(-2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.context-menu-item {
+    padding: 7px 12px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--text);
+    transition: background-color 0.1s ease;
+}
+
+.context-menu-item:hover {
+    background-color: var(--accent-soft);
+    color: var(--accent);
+}
+
+.context-menu-item.disabled {
+    cursor: not-allowed;
+    color: var(--text-muted);
+}
+
+.context-menu-item.disabled:hover {
+    background-color: transparent;
+    color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Toast / error display
+   ========================================================================== */
+
+.toast-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background-color: transparent;
+}
+
+.toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 80%;
+    font-size: 13px;
+    border: 1px solid;
+    animation: toast-in 0.18s ease-out;
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.toast-error {
+    background-color: var(--danger-bg);
+    border-color: var(--danger-border);
+    color: var(--danger-text);
+}
+
+.toast-warning {
+    background-color: var(--warning-bg);
+    border-color: var(--warning-border);
+    color: var(--warning-text);
+}
+
+.toast-info {
+    background-color: var(--info-bg);
+    border-color: var(--info-border);
+    color: var(--info-text);
+}
+
+.toast-success {
+    background-color: var(--success-bg);
+    border-color: var(--success-border);
+    color: var(--success-text);
+}
+
+.toast-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    color: inherit;
+    opacity: 0.6;
+    margin-left: 4px;
+}
+
+.toast-close-btn:hover {
+    opacity: 1;
+}
+
+/* ==========================================================================
+   Graph popup
+   ========================================================================== */
+
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(20, 22, 26, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 900;
+}
+
+.popup-panel {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    justify-content: center;
+    width: 80%;
+    height: 80%;
+    box-shadow: var(--shadow-lg);
+}
+
+.popup-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    padding: 0 0 12px 0;
+}
+
+.popup-tabs {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    align-items: center;
+}
+
+.popup-tab {
+    background-color: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.popup-tab:hover {
+    background-color: var(--bg-muted);
+    color: var(--text);
+}
+
+.popup-tab.active {
+    background-color: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.popup-close-btn {
+    background-color: transparent;
+    height: 30px;
+    width: 30px;
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    font-size: 16px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.popup-close-btn:hover {
+    background-color: var(--danger-bg);
+    color: var(--danger);
+}
+
+.popup-body {
+    flex-grow: 1;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-subtle);
+    min-height: 80%;
+    width: 100%;
+    border-radius: var(--radius-md);
+    overflow: auto;
+}
+
+/* ==========================================================================
+   Graph forms
+   ========================================================================== */
+
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px;
+    gap: 12px;
+    width: 90%;
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.form-input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.form-submit {
+    background-color: var(--accent);
+    border: none;
+    color: var(--text-on-accent);
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 8px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.15s ease;
+}
+
+.form-submit:hover {
+    background-color: var(--accent-hover);
 }

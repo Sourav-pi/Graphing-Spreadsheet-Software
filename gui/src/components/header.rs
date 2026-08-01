@@ -10,13 +10,6 @@ use dioxus::prelude::*;
 /// Icon for the spreadsheet application
 const SPREADSHEET_ICON: Asset = asset!("assets/spreadsheet.png");
 
-/// CSS styles for the header container
-const HEAD_STYLE: &str = "
-   width: 100vw;
-   padding: 0px;
-   margin: 0px;
-";
-
 /// Properties for the Header component
 #[derive(Props, PartialEq, Clone)]
 pub struct HeaderProps {
@@ -39,20 +32,15 @@ pub struct HeaderProps {
 #[component]
 pub fn Header(props: HeaderProps) -> Element {
     rsx! {
-      div {style : HEAD_STYLE,
-        div {
-          style: "height: 50px; display: flex; flex-direction: row; align-items: center; justify-content: space-between;margin: 10px 15px;",
-          div {
-              style: "display: flex; gap: 20px; flex-direction: row; align-items: center; justify-content: start; ",
+      div { class: "app-header",
+        div { class: "app-header-bar",
+          div { class: "app-header-left",
               img {
                   src: "{SPREADSHEET_ICON}",
                   alt: "Logo",
-                  style: "width: 50px; height: 50px;"
+                  class: "app-logo"
               }
-              h1 {
-                  style: "margin: 0; font-family: Arial, Helvetica, sans-serif",
-                  "{props.filename}"
-              }
+              h1 { class: "app-title", "{props.filename}" }
           }
           Toolbar {
               num_rows: props.num_rows,

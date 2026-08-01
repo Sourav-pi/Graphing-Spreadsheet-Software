@@ -3,27 +3,6 @@ use super::context_menu::MenuType;
 use super::spreadsheet::ContextMenuContext;
 use dioxus::prelude::*;
 
-const ROW_STYLE: &str = "
-    position: sticky; 
-    top: 0; background-color: #f3f3f3; 
-    z-index: 10;
-";
-
-const CELL_HEADER_STYLE: &str = "
-    width: 81px;
-    height: 31px;
-    border: 1px solid #ccc;
-    background-color: #f3f3f3;
-    font-weight: bold;
-    position: sticky;
-    top: 90px;
-    left: 0px;
-    z-index: 10;
-    outline: none;
-    text-align: center;
-    font-size: 16px;
-";
-
 // Helper function to convert column number to letter
 pub fn column_to_letter(col: i32) -> String {
     if col <= 0 {
@@ -60,7 +39,7 @@ pub struct RowProps {
 pub fn Row(props: RowProps) -> Element {
     let mut context_menu = use_context::<ContextMenuContext>();
 
-    let row_style = if props.is_header { ROW_STYLE } else { "" };
+    let row_width_style = format!("width: {}px;", props.min_width);
 
     // Handler for row header right-click
     let on_row_contextmenu = {
@@ -119,18 +98,19 @@ pub fn Row(props: RowProps) -> Element {
     rsx! {
 
         div {
-            style: "display: flex; flex-direction: row; {row_style}",
+            style: "display: flex; flex-direction: row;",
             class: "spreadsheet-row",
             onclick: on_click,
             // Add column header (A, B, C...) cell if this is the first column
             if props.is_header {
-                input { style: CELL_HEADER_STYLE, readonly: true, "" }
+                input { style: "{row_width_style}", class: "cell-header", readonly: true, "" }
                 for col in (props.start_col)..=props.end_col {
                     {
                         let col_letter = column_to_letter(col);
                         rsx! {
                             input {
-                                style: CELL_HEADER_STYLE,
+                                style: "{row_width_style}",
+                                class: "cell-header",
                                 readonly: true,
                                 value: "{col_letter}",
                                 oncontextmenu: generate_on_col_contextmenu(col),
@@ -140,7 +120,8 @@ pub fn Row(props: RowProps) -> Element {
                 }
             } else {
                 input {
-                    style: CELL_HEADER_STYLE,
+                    style: "{row_width_style}",
+                    class: "cell-header",
                     readonly: true,
                     value: props.row.to_string(),
                     oncontextmenu: on_row_contextmenu,

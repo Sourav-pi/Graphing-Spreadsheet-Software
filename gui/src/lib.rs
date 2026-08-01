@@ -20,20 +20,12 @@ pub fn run() {
         .launch(App);
 }
 
-const STYLE: &str = "html {
-    height: 100vh;
-}
-
-body {
-    height: 100%;
-    margin: 0;
-}";
+const MAIN_CSS: Asset = asset!("assets/main.css");
 
 #[component]
 fn App() -> Element {
     rsx! {
-         style { "{STYLE}" },
+        document::Stylesheet { href: MAIN_CSS }
         Spreadsheet {}
-
     }
 }

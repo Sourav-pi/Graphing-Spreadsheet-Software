@@ -24,16 +24,6 @@ fn column_to_letter(column: usize) -> String {
     result
 }
 
-/// Style for the formula bar container
-const FORMULA_BAR_STYLE: &str = "
-    width: 100%;
-    height: 40px;
-    background-color: rgb(42, 42, 42);
-    display: flex;
-    align-items: center;
-    padding: 0 10px;
-";
-
 /// The Formula Bar component for editing cell formulas
 ///
 /// This component displays and allows editing of the formula in the currently
@@ -97,14 +87,14 @@ pub fn FormulaBar() -> Element {
 
     rsx! {
         div {
-            style: FORMULA_BAR_STYLE,
+            class: "formula-bar",
             input {
-                style: "color: white; width: 7%; text-align: center; background-color: rgb(42, 42, 42); font-size: 20px;",
+                class: "cell-ref-chip",
                 readonly: true,
                 value: "{column_to_letter(selected_cell.cloned().1 as usize)}{selected_cell.cloned().0}"
             }
             input {
-                style: "margin-left: 10px; padding: 5px; width: 91%; background-color: white; border: none; height: 55%;",
+                class: "formula-input",
                 value: "{formula}",
                 oninput: move |evt| formula.set(evt.value().clone()),
                 onblur: on_blur,

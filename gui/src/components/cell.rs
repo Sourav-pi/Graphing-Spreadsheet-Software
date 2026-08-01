@@ -3,36 +3,6 @@ use super::spreadsheet::*;
 use cores::Error;
 use dioxus::prelude::*;
 
-const CELL_STYLE: &str = "
-    width: 81px;
-    height: 31px;
-    border: 1px solid #ccc;
-    outline: none;
-    text-align: center;
-";
-
-const CELL_HEADER_STYLE: &str = "
-    width: 81px;
-    height: 31px;
-    border: 1px solid #ccc;
-    background-color: #f3f3f3;
-    font-weight: bold;
-    position: sticky;
-    top: 90px;
-    left: 0px;
-    z-index: 10;
-    outline: none;
-    text-align: center;
-    font-size: 16px;
-";
-const CELL_SELECTED_STYLE: &str = "
-    width: 81px;
-    height: 31px;
-    border: 1px solid blue;
-    outline: none;
-    text-align: center;
-";
-
 #[derive(Props, PartialEq, Clone)]
 pub struct CellProps {
     pub row: i32,
@@ -147,17 +117,24 @@ pub fn Cell(props: CellProps) -> Element {
     }
     // });
 
+    let width_style = format!("width: {}px;", props.min_width);
+
     if props.is_header {
         rsx! {
             input {
                 id: "row-{props.row}-col-{props.col}",
                 readonly: true,
                 value: props.col.to_string(),
-                style: CELL_HEADER_STYLE,
-                class: "cell"
+                style: "{width_style}",
+                class: "cell-header",
             }
         }
     } else {
+        let cell_class = if is_editing.cloned() || is_this_cell_selected {
+            "cell-input selected"
+        } else {
+            "cell-input"
+        };
         rsx! {
             input {
                 id: "row-{props.row}-col-{props.col}",
@@ -171,14 +148,8 @@ pub fn Cell(props: CellProps) -> Element {
                 } else {
                     value.cloned()
                 },
-                style: if props.is_header {
-                    CELL_HEADER_STYLE
-                } else if is_editing.cloned() || is_this_cell_selected {
-                    CELL_SELECTED_STYLE
-                } else {
-                    CELL_STYLE
-                },
-                class: "cell"
+                style: "{width_style}",
+                class: "{cell_class}",
             }
         }
     }
