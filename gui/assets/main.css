@@ -272,15 +272,39 @@ input {
     overflow: hidden;
     height: calc(100vh - 94px);
     width: 100%;
-    display: block;
+    display: flex;
+    flex-direction: column;
     position: relative;
     background: var(--bg);
 }
 
-.spreadsheet-table {
-    display: table;
-    min-width: max-content;
-    border-collapse: collapse;
+.grid-body-clip {
+    flex: 1 1 auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.grid-body-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+}
+
+.spreadsheet-row {
+    flex: 0 0 auto;
+}
+
+.row-scroll-clip {
+    flex: 1 1 auto;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.row-scroll-track {
+    display: flex;
+    flex-direction: row;
+    will-change: transform;
 }
 
 .cell-header {

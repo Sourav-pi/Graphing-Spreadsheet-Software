@@ -96,26 +96,35 @@ pub fn Cell(props: CellProps) -> Element {
         formula.set(new_value);
     };
 
-    use_effect(move || {
+    // Virtualized rows/columns reuse the same Cell component instance for a
+    // new (row, col) as the user scrolls, without remounting it. Since props
+    // aren't reactive on their own, these effects need `use_reactive` so they
+    // re-run when `props.row`/`props.col` change and not just when the sheet
+    // itself changes (`sheetversion`) — otherwise the cell keeps showing
+    // whatever cell it last displayed until it happens to regain focus.
+    let row = props.row;
+    let col = props.col;
+
+    use_effect(use_reactive!(|(row, col)| {
         let _ = sheetversion.cloned();
         if let Ok(sheet_locked) = sheet.cloned().lock() {
             // Update the cell value in the Sheet object
             formula.set(
                 sheet_locked
-                    .get_formula(props.row as usize, props.col as usize)
+                    .get_formula(row as usize, col as usize)
                     .to_string(),
             );
         }
-    });
+    }));
 
-    // use_effect(move ||{
-    let _ = sheetversion.cloned();
+    use_effect(use_reactive!(|(row, col)| {
+        let _ = sheetversion.cloned();
 
-    if let Ok(sheet_locked) = sheet.cloned().lock() {
-        // Update the cell value in the Sheet object
-        value.set(sheet_locked.get_value(props.row, props.col).to_string());
-    }
-    // });
+        if let Ok(sheet_locked) = sheet.cloned().lock() {
+            // Update the cell value in the Sheet object
+            value.set(sheet_locked.get_value(row, col).to_string());
+        }
+    }));
 
     let width_style = format!("width: {}px;", props.min_width);
 

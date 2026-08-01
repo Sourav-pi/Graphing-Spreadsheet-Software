@@ -1,6 +1,16 @@
 use super::row::Row;
 use crate::components::spreadsheet::*;
+use dioxus::html::geometry::WheelDelta;
 use dioxus::{desktop::use_window, prelude::*};
+
+/// Rendered height of a row (header or data), in pixels. Must match the
+/// `.cell-header` / `.cell-input` height in main.css.
+const ROW_HEIGHT: f64 = 30.0;
+
+/// Extra rows/columns rendered beyond what exactly fits the viewport, so
+/// there's no blank gap at the trailing edge while a sub-row/sub-column
+/// scroll offset is in effect.
+const OVERSCAN: i32 = 2;
 
 #[derive(Props, PartialEq, Clone)]
 pub struct GridProps {
@@ -10,14 +20,15 @@ pub struct GridProps {
 
 #[component]
 pub fn Grid(props: GridProps) -> Element {
-    let mut start_row_ctx = use_signal(|| 1);
-    let mut start_col_ctx = use_signal(|| 1);
+    // Continuous scroll position, in pixels, from the top-left of the sheet.
+    let mut scroll_top = use_signal(|| 0.0f64);
+    let mut scroll_left = use_signal(|| 0.0f64);
     let mut selected_cell = use_context::<SelectedCellContext>();
 
     let window_width = use_window().inner_size().width;
     let window_height = use_window().inner_size().height;
 
-    // Calculate cell dimensions based on window size
+    // Calculate cell width based on window size
     let min_cell_width = if window_width > 1600 {
         100
     } else if window_width > 1200 {
@@ -25,82 +36,72 @@ pub fn Grid(props: GridProps) -> Element {
     } else {
         81
     };
+    let col_width = min_cell_width as f64;
 
-    // Calculate visible rows based on available height
-    // The 120px accounts for the header height, and 30px is an approximate row height
-    let available_height = window_height as i32 - 120;
-    let row_height = 35;
-    let rows_per_page = (available_height / row_height).clamp(10, 40) - 1;
+    // Viewport available to the scrolling body, excluding the fixed header
+    // row and the header/formula-bar chrome above the grid (see .grid-container
+    // in main.css, which reserves the same 94px for that chrome).
+    let body_viewport_height = (window_height as f64 - 94.0 - ROW_HEIGHT).max(ROW_HEIGHT);
+    let data_viewport_width = (window_width as f64 - min_cell_width as f64).max(col_width);
 
-    // Calculate visible columns based on available width and cell width
-    let cols_per_page = ((window_width as i32) / (min_cell_width + 4)).clamp(8, 26) - 1;
+    let max_scroll_top =
+        ((props.num_rows as f64) * ROW_HEIGHT - body_viewport_height).max(0.0);
+    let max_scroll_left =
+        ((props.num_cols as f64) * col_width - data_viewport_width).max(0.0);
 
-    // Read context values once at the beginning of the component
-    let start_row = start_row_ctx.cloned();
-    let start_col = start_col_ctx.cloned();
+    // Clamp in case the window shrank or the sheet got smaller since the
+    // last scroll.
+    let clamped_top = scroll_top.cloned().clamp(0.0, max_scroll_top);
+    let clamped_left = scroll_left.cloned().clamp(0.0, max_scroll_left);
+    if clamped_top != scroll_top.cloned() {
+        scroll_top.set(clamped_top);
+    }
+    if clamped_left != scroll_left.cloned() {
+        scroll_left.set(clamped_left);
+    }
 
-    // Calculate max pages once based on these values
-    let max_start_row = (props.num_rows - rows_per_page).max(1);
-    let max_start_col = (props.num_cols - cols_per_page).max(1);
+    // First visible row/col and the sub-row/sub-col pixel remainder used to
+    // shift the rendered window so scrolling feels continuous rather than
+    // snapping row-by-row.
+    let start_row = (clamped_top / ROW_HEIGHT).floor() as i32 + 1;
+    let offset_y = clamped_top - (start_row - 1) as f64 * ROW_HEIGHT;
+    let visible_rows = (body_viewport_height / ROW_HEIGHT).ceil() as i32 + OVERSCAN;
+    let end_row = (start_row + visible_rows - 1).min(props.num_rows);
 
-    // Calculate end positions based on the variables we already have
-    let end_row = (start_row + rows_per_page - 1).min(props.num_rows);
-    let end_col = (start_col + cols_per_page - 1).min(props.num_cols);
+    let start_col = (clamped_left / col_width).floor() as i32 + 1;
+    let offset_x = clamped_left - (start_col - 1) as f64 * col_width;
+    let visible_cols = (data_viewport_width / col_width).ceil() as i32 + OVERSCAN;
+    let end_col = (start_col + visible_cols - 1).min(props.num_cols);
 
-    // Function to check if a cell is visible in the current view
+    // Whether a cell is fully visible within the current scroll position
+    // (not just within the overscan-padded render window).
     let is_cell_visible = move |row: i32, col: i32| -> bool {
-        row >= start_row && row <= end_row && col >= start_col && col <= end_col
+        let row_top = (row - 1) as f64 * ROW_HEIGHT;
+        let row_bottom = row_top + ROW_HEIGHT;
+        let col_left = (col - 1) as f64 * col_width;
+        let col_right = col_left + col_width;
+        row_top >= clamped_top
+            && row_bottom <= clamped_top + body_viewport_height
+            && col_left >= clamped_left
+            && col_right <= clamped_left + data_viewport_width
     };
 
-    // Function to scroll to a cell that's not in view
+    // Scroll just enough to bring a cell fully into view.
     let mut scroll_to_cell = move |row: i32, col: i32| {
-        // If the cell is above current view, scroll up to show it at the top
-        if row < start_row {
-            start_row_ctx.set((row - 1).max(1));
-        }
-        // If the cell is below current view, scroll down to show it at the bottom
-        else if row > end_row {
-            let new_start = (row - rows_per_page + 1).max(1).min(max_start_row);
-            start_row_ctx.set(new_start);
+        let row_top = (row - 1) as f64 * ROW_HEIGHT;
+        let row_bottom = row_top + ROW_HEIGHT;
+        if row_top < clamped_top {
+            scroll_top.set(row_top.max(0.0));
+        } else if row_bottom > clamped_top + body_viewport_height {
+            scroll_top.set((row_bottom - body_viewport_height).min(max_scroll_top));
         }
 
-        // If the cell is to the left of current view, scroll left to show it
-        if col < start_col {
-            start_col_ctx.set((col - 1).max(1));
-        }
-        // If the cell is to the right of current view, scroll right to show it
-        else if col > end_col {
-            let new_start = (col - cols_per_page + 1).max(1).min(max_start_col);
-            start_col_ctx.set(new_start);
-        }
-    };
-
-    // Scrolling helper functions remain the same
-    let mut move_up_help = move || {
-        let current_row = start_row_ctx.cloned();
-        if current_row > 1 {
-            start_row_ctx.set(current_row - 1);
-        }
-    };
-
-    let mut move_down_help = move || {
-        let current_row = start_row_ctx.cloned();
-        if current_row < max_start_row - 1 {
-            start_row_ctx.set(current_row + 1);
-        }
-    };
-
-    let mut move_left_help = move || {
-        let current_col = start_col_ctx.cloned();
-        if current_col > 1 {
-            start_col_ctx.set(current_col - 1);
-        }
-    };
-
-    let mut move_right_help = move || {
-        let current_col = start_col_ctx.cloned();
-        if current_col < max_start_col - 1 {
-            start_col_ctx.set(current_col + 1);
+        let col_left = (col - 1) as f64 * col_width;
+        let col_right = col_left + col_width;
+        if col_left < clamped_left {
+            scroll_left.set(col_left.max(0.0));
+        } else if col_right > clamped_left + data_viewport_width {
+            scroll_left.set((col_right - data_viewport_width).min(max_scroll_left));
         }
     };
 
@@ -114,25 +115,37 @@ pub fn Grid(props: GridProps) -> Element {
         }
     });
 
-    // Navigation handle
+    // Natural, continuous scrolling: the wheel delta is added directly to
+    // the pixel scroll position, same as a browser's native scroll.
+    let on_wheel = move |e: Event<WheelData>| {
+        e.prevent_default();
+
+        let (raw_x, raw_y) = match e.delta() {
+            WheelDelta::Pixels(v) => (v.x, v.y),
+            WheelDelta::Lines(v) => (v.x * ROW_HEIGHT, v.y * ROW_HEIGHT),
+            WheelDelta::Pages(v) => (
+                v.x * data_viewport_width,
+                v.y * body_viewport_height,
+            ),
+        };
+
+        scroll_top.set((scroll_top.cloned() + raw_y).clamp(0.0, max_scroll_top));
+        scroll_left.set((scroll_left.cloned() + raw_x).clamp(0.0, max_scroll_left));
+    };
+
+    // One-row/one-column nudges for the on-screen nav buttons.
     let move_up = move |_| {
-        move_up_help();
+        scroll_top.set((scroll_top.cloned() - ROW_HEIGHT).clamp(0.0, max_scroll_top));
     };
     let move_down = move |_| {
-        move_down_help();
+        scroll_top.set((scroll_top.cloned() + ROW_HEIGHT).clamp(0.0, max_scroll_top));
     };
     let move_left = move |_| {
-        move_left_help();
+        scroll_left.set((scroll_left.cloned() - col_width).clamp(0.0, max_scroll_left));
     };
     let move_right = move |_| {
-        move_right_help();
+        scroll_left.set((scroll_left.cloned() + col_width).clamp(0.0, max_scroll_left));
     };
-
-    // Calculate end positions based on the variables we already have
-    let end_row = (start_row + rows_per_page - 1).min(props.num_rows);
-    let end_col = (start_col + cols_per_page - 1).min(props.num_cols);
-
-    // Calculate visible range
 
     let on_keydown = {
         let row = selected_cell.cloned().0;
@@ -150,36 +163,21 @@ pub fn Grid(props: GridProps) -> Element {
                 let mut to_row = row;
                 let mut to_col = col;
 
-                // Store the selected cell position once to avoid inconsistencies
-                let current_row = selected_cell.cloned().0;
-                let current_col = selected_cell.cloned().1;
-
-                // Handle vertical movement - only change row, not column
                 if e.key() == Key::ArrowDown || e.key() == Key::Enter {
-                    if current_row == end_row && start_row_ctx.cloned() < max_start_row {
-                        move_down_help();
-                    };
-                    to_row = (row + 1).max(1).min(props.num_rows); // Prevent going past the last row
+                    to_row = (row + 1).max(1).min(props.num_rows);
                 } else if e.key() == Key::ArrowUp {
-                    if current_row == start_row && start_row_ctx.cloned() > 1 {
-                        move_up_help();
-                    };
-                    to_row = (row - 1).max(1).min(props.num_rows); // Prevent going before the first row
-                }
-                // Handle horizontal movement - only change column, not row
-                else if (e.key() == Key::Tab && e.modifiers().shift())
+                    to_row = (row - 1).max(1).min(props.num_rows);
+                } else if (e.key() == Key::Tab && e.modifiers().shift())
                     || e.key() == Key::ArrowLeft
                 {
-                    if current_col == start_col && start_col_ctx.cloned() > 1 {
-                        move_left_help();
-                    };
-                    to_col = (col - 1).max(1).min(props.num_cols); // Prevent going before the first column
+                    to_col = (col - 1).max(1).min(props.num_cols);
                 } else if e.key() == Key::Tab || e.key() == Key::ArrowRight {
-                    if current_col == end_col && start_col_ctx.cloned() < max_start_col {
-                        move_right_help();
-                    };
-                    to_col = (col + 1).max(1).min(props.num_cols); // Prevent going past the last column
+                    to_col = (col + 1).max(1).min(props.num_cols);
                 }
+
+                // Scroll synchronously so the target cell is already in the
+                // DOM by the time the focus script below runs.
+                scroll_to_cell(to_row, to_col);
 
                 let script = format!(
                     r#"
@@ -200,27 +198,35 @@ pub fn Grid(props: GridProps) -> Element {
         div {
             class: "grid-container",
             onkeydown: on_keydown,
-            div {
-                class: "spreadsheet-table",
-                // Header row (always visible)
-                Row {
-                    row: 0,
-                    num_cols: cols_per_page,
-                    is_header: true,
-                    min_width: min_cell_width,
-                    start_col: start_col,
-                    end_col: end_col,
-                }
+            onwheel: on_wheel,
 
-                // Visible rows
-                for i in (start_row)..=(end_row) {
-                    Row {
-                        row: i,
-                        num_cols: cols_per_page,
-                        is_header: false,
-                        min_width: min_cell_width,
-                        start_col: start_col,
-                        end_col: end_col,
+            // Header row (fixed at the top, shifts horizontally with scroll_left)
+            Row {
+                row: 0,
+                num_cols: end_col - start_col + 1,
+                is_header: true,
+                min_width: min_cell_width,
+                start_col: start_col,
+                end_col: end_col,
+                x_offset: offset_x,
+            }
+
+            // Scrolling body
+            div {
+                class: "grid-body-clip",
+                div {
+                    class: "grid-body-track",
+                    style: "transform: translateY(-{offset_y}px);",
+                    for i in (start_row)..=(end_row) {
+                        Row {
+                            row: i,
+                            num_cols: end_col - start_col + 1,
+                            is_header: false,
+                            min_width: min_cell_width,
+                            start_col: start_col,
+                            end_col: end_col,
+                            x_offset: offset_x,
+                        }
                     }
                 }
             }
@@ -239,28 +245,28 @@ pub fn Grid(props: GridProps) -> Element {
                 button {
                     class: "nav-btn",
                     onclick: move_up,
-                    disabled: start_row <= 1,
+                    disabled: clamped_top <= 0.0,
                     id: "up-button",
                     "↑"
                 }
                 button {
                     class: "nav-btn",
                     onclick: move_down,
-                    disabled: start_row >= max_start_row,
+                    disabled: clamped_top >= max_scroll_top,
                     id: "down-button",
                     "↓"
                 }
                 button {
                     class: "nav-btn",
                     onclick: move_left,
-                    disabled: start_col <= 1,
+                    disabled: clamped_left <= 0.0,
                     id: "left-button",
                     "←"
                 }
                 button {
                     class: "nav-btn",
                     onclick: move_right,
-                    disabled: start_col >= max_start_col,
+                    disabled: clamped_left >= max_scroll_left,
                     id: "right-button",
                     "→"
                 }

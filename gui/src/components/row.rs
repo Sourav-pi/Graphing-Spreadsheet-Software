@@ -33,6 +33,11 @@ pub struct RowProps {
     pub start_col: i32,
     #[props(default = 0)]
     pub end_col: i32,
+    /// Sub-column pixel scroll offset, applied to everything except the
+    /// pinned first (row-number/corner) cell, so horizontal scroll can move
+    /// continuously instead of jumping a whole column at a time.
+    #[props(default = 0.0)]
+    pub x_offset: f64,
 }
 
 #[component]
@@ -95,29 +100,17 @@ pub fn Row(props: RowProps) -> Element {
         context_menu.set(None);
     };
 
+    let track_style = format!("transform: translateX(-{}px);", props.x_offset);
+
     rsx! {
 
         div {
             style: "display: flex; flex-direction: row;",
             class: "spreadsheet-row",
             onclick: on_click,
-            // Add column header (A, B, C...) cell if this is the first column
+            // Pinned first cell: column-letter corner or row-number header
             if props.is_header {
                 input { style: "{row_width_style}", class: "cell-header", readonly: true, "" }
-                for col in (props.start_col)..=props.end_col {
-                    {
-                        let col_letter = column_to_letter(col);
-                        rsx! {
-                            input {
-                                style: "{row_width_style}",
-                                class: "cell-header",
-                                readonly: true,
-                                value: "{col_letter}",
-                                oncontextmenu: generate_on_col_contextmenu(col),
-                            }
-                        }
-                    }
-                }
             } else {
                 input {
                     style: "{row_width_style}",
@@ -126,15 +119,39 @@ pub fn Row(props: RowProps) -> Element {
                     value: props.row.to_string(),
                     oncontextmenu: on_row_contextmenu,
                 }
+            }
 
-                // Generate cells for this row
-                for col in (props.start_col)..=props.end_col {
-                    Cell {
-                        row: props.row,
-                        col,
-                        is_header: props.is_header,
-                        min_width: props.min_width,
-                        oncontextmenu: generate_on_cell_contextmenu(props.row, col),
+            // Everything else scrolls continuously behind a clipped viewport
+            div {
+                class: "row-scroll-clip",
+                div {
+                    class: "row-scroll-track",
+                    style: "{track_style}",
+                    if props.is_header {
+                        for col in (props.start_col)..=props.end_col {
+                            {
+                                let col_letter = column_to_letter(col);
+                                rsx! {
+                                    input {
+                                        style: "width: {props.min_width}px;",
+                                        class: "cell-header",
+                                        readonly: true,
+                                        value: "{col_letter}",
+                                        oncontextmenu: generate_on_col_contextmenu(col),
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        for col in (props.start_col)..=props.end_col {
+                            Cell {
+                                row: props.row,
+                                col,
+                                is_header: props.is_header,
+                                min_width: props.min_width,
+                                oncontextmenu: generate_on_cell_contextmenu(props.row, col),
+                            }
+                        }
                     }
                 }
             }
