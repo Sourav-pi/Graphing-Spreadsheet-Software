@@ -29,6 +29,11 @@ struct TempRecord {
     param2: i32,
     /// Comma-separated list of cell dependencies
     depend: String,
+    /// Literal text content (only meaningful for type_ == 3 cells).
+    /// Defaults to empty so .ss files written before text-cell support was
+    /// added still load correctly.
+    #[serde(default)]
+    text: String,
 }
 
 impl Sheet {
@@ -68,6 +73,7 @@ impl Sheet {
                         param2: 0,
                     },
                     depend: Vec::new(),
+                    text: String::new(),
                 };
             }
         }
@@ -83,6 +89,7 @@ impl Sheet {
                     param2: record.param2,
                 },
                 depend: Vec::new(),
+                text: record.text.clone(),
             };
             new_cell.value = record.value;
             new_cell.formula.param1 = record.param1;
@@ -144,9 +151,9 @@ impl Sheet {
 #[test]
 fn test_read_ss() {
     let mut test_sheet = Sheet::new(6, 6);
-    test_sheet.update_cell_data(1, 1, String::from("AVG(A2:D5)"));
+    test_sheet.update_cell_data(1, 1, String::from("=AVG(A2:D5)"));
     test_sheet.update_cell_data(2, 2, String::from("500"));
-    test_sheet.update_cell_data(2, 1, String::from("B1+B5"));
+    test_sheet.update_cell_data(2, 1, String::from("=B1+B5"));
     println!("{}", test_sheet.get_value(1, 1));
     let res = test_sheet.write_file("./temp/temp.ss");
     match res {

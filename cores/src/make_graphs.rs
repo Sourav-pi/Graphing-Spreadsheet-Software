@@ -283,10 +283,10 @@ mod tests {
     #[test]
     fn test_line_graph() {
         let mut test_sheet = Sheet::new(6, 6);
-        test_sheet.update_cell_data(1, 1, String::from("A2+A3"));
+        test_sheet.update_cell_data(1, 1, String::from("=A2+A3"));
         test_sheet.update_cell_data(2, 1, String::from("90"));
         test_sheet.update_cell_data(3, 1, String::from("50"));
-        test_sheet.update_cell_data(4, 1, String::from("A1+A2"));
+        test_sheet.update_cell_data(4, 1, String::from("=A1+A2"));
         test_sheet.update_cell_data(5, 1, String::from("-5"));
         test_sheet.update_cell_data(6, 1, String::from("6"));
         let result = test_sheet.line_graph("A1:A6", "A2,A3,A4,A5,A6", "Y Axis", "Line Graph");
@@ -296,10 +296,10 @@ mod tests {
     #[test]
     fn test_scatter_graph() {
         let mut test_sheet = Sheet::new(6, 6);
-        test_sheet.update_cell_data(1, 1, String::from("A2+A3"));
+        test_sheet.update_cell_data(1, 1, String::from("=A2+A3"));
         test_sheet.update_cell_data(2, 1, String::from("90"));
         test_sheet.update_cell_data(3, 1, String::from("50"));
-        test_sheet.update_cell_data(4, 1, String::from("A1+A2"));
+        test_sheet.update_cell_data(4, 1, String::from("=A1+A2"));
         test_sheet.update_cell_data(5, 1, String::from("-5"));
         test_sheet.update_cell_data(6, 1, String::from("6"));
         let result =
@@ -310,10 +310,10 @@ mod tests {
     #[test]
     fn test_bar_graph() {
         let mut test_sheet = Sheet::new(6, 6);
-        test_sheet.update_cell_data(1, 1, String::from("A2+A3"));
+        test_sheet.update_cell_data(1, 1, String::from("=A2+A3"));
         test_sheet.update_cell_data(2, 1, String::from("90"));
         test_sheet.update_cell_data(3, 1, String::from("50"));
-        test_sheet.update_cell_data(4, 1, String::from("A1+A2"));
+        test_sheet.update_cell_data(4, 1, String::from("=A1+A2"));
         test_sheet.update_cell_data(5, 1, String::from("-5"));
         test_sheet.update_cell_data(6, 1, String::from("6"));
         let result = test_sheet.bar_graph("A1:A6", "A2,A3,A4,A5,A6", "Y Axis", "Bar Graph");
@@ -323,10 +323,10 @@ mod tests {
     #[test]
     fn test_pie_graph() {
         let mut test_sheet = Sheet::new(6, 6);
-        test_sheet.update_cell_data(1, 1, String::from("A2+A3"));
+        test_sheet.update_cell_data(1, 1, String::from("=A2+A3"));
         test_sheet.update_cell_data(2, 1, String::from("90"));
         test_sheet.update_cell_data(3, 1, String::from("50"));
-        test_sheet.update_cell_data(4, 1, String::from("A1+A2"));
+        test_sheet.update_cell_data(4, 1, String::from("=A1+A2"));
         test_sheet.update_cell_data(5, 1, String::from("-5"));
         test_sheet.update_cell_data(6, 1, String::from("6"));
         let result = test_sheet.pie_graph("A1:A6", "A2,A3,A4,A5,A6", "Pie Graph");

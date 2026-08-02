@@ -29,12 +29,6 @@ pub fn Cell(props: CellProps) -> Element {
     let mut formula = use_signal(String::new);
     let mut value = use_signal(String::new);
 
-    // Check if this cell is selected based on context
-    let is_this_cell_selected = {
-        let (sel_row, sel_col) = *selected_cell.read();
-        props.row == sel_row && props.col == sel_col
-    };
-
     // Handler for when user starts editing
     let on_focus = {
         let row = props.row;
@@ -54,12 +48,14 @@ pub fn Cell(props: CellProps) -> Element {
             is_editing.set(false);
 
             // Get the formula from context in case it was updated elsewhere
-            let mut formula_text = formula.read().clone();
-            // Evaluate the formula and update the displayed value
-            if formula_text.is_empty() {
-                formula_text = "0".to_string();
-            }
+            let formula_text = formula.read().clone();
             if let Ok(mut sheet_locked) = sheet.cloned().lock() {
+                if formula_text.is_empty() {
+                    // Leaving the cell blank clears it rather than writing "0".
+                    sheet_locked.clear_cell(row as usize, col as usize);
+                    sheetversion.set(sheetversion.cloned() + 1);
+                    return;
+                }
                 // Update the cell value in the Sheet object
                 let res =
                     sheet_locked.update_cell_data(row as usize, col as usize, formula_text.clone());
@@ -105,15 +101,27 @@ pub fn Cell(props: CellProps) -> Element {
     let row = props.row;
     let col = props.col;
 
+    // Reset edit state when this reused instance is reassigned to a different cell.
+    use_effect(use_reactive!(|(row, col)| {
+        is_editing.set(false);
+        let _ = document::eval(&format!(
+            "let x = document.getElementById('row-{}-col-{}'); if (x) {{ x.blur(); }}",
+            row, col
+        ));
+    }));
+
     use_effect(use_reactive!(|(row, col)| {
         let _ = sheetversion.cloned();
         if let Ok(sheet_locked) = sheet.cloned().lock() {
-            // Update the cell value in the Sheet object
-            formula.set(
+            // A never-set (or since-cleared) cell edits as blank rather than "0".
+            let display = if sheet_locked.is_empty_cell(row, col) {
+                String::new()
+            } else {
                 sheet_locked
                     .get_formula(row as usize, col as usize)
-                    .to_string(),
-            );
+                    .to_string()
+            };
+            formula.set(display);
         }
     }));
 
@@ -121,8 +129,17 @@ pub fn Cell(props: CellProps) -> Element {
         let _ = sheetversion.cloned();
 
         if let Ok(sheet_locked) = sheet.cloned().lock() {
-            // Update the cell value in the Sheet object
-            value.set(sheet_locked.get_value(row, col).to_string());
+            // A never-set (or since-cleared) cell displays as blank rather
+            // than "0". Text cells show their literal text; everything else
+            // shows its computed numeric value.
+            let display = if sheet_locked.is_empty_cell(row, col) {
+                String::new()
+            } else {
+                sheet_locked
+                    .get_text(row, col)
+                    .unwrap_or_else(|| sheet_locked.get_value(row, col).to_string())
+            };
+            value.set(display);
         }
     }));
 
@@ -139,7 +156,9 @@ pub fn Cell(props: CellProps) -> Element {
             }
         }
     } else {
-        let cell_class = if is_editing.cloned() || is_this_cell_selected {
+        // Blue border only on the cell that actually has focus, not just
+        // whichever cell was last selected.
+        let cell_class = if is_editing.cloned() {
             "cell-input selected"
         } else {
             "cell-input"
@@ -152,11 +171,7 @@ pub fn Cell(props: CellProps) -> Element {
                 oninput: on_input,
                 oncontextmenu: props.oncontextmenu,
                 // Show the formula when editing, otherwise show the result
-                value: if *is_editing.read() {
-                    formula.cloned()
-                } else {
-                    value.cloned()
-                },
+                value: if *is_editing.read() { formula.cloned() } else { value.cloned() },
                 style: "{width_style}",
                 class: "{cell_class}",
             }

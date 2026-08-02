@@ -38,8 +38,8 @@ impl Serialize for CsvStore {
     where
         S: Serializer,
     {
-        // We'll output a flat record with seven fields
-        let mut state = serializer.serialize_struct("Cell", 7)?;
+        // We'll output a flat record with eight fields
+        let mut state = serializer.serialize_struct("Cell", 8)?;
 
         // Serialize position information
         state.serialize_field("row", &self.row)?;
@@ -73,6 +73,9 @@ impl Serialize for CsvStore {
             .collect::<Vec<_>>()
             .join(",");
         state.serialize_field("depend", &depend_str)?;
+
+        // Literal text content (only meaningful for type_ == 3 cells)
+        state.serialize_field("text", &self.data.text)?;
 
         state.end()
     }
@@ -137,9 +140,9 @@ impl Sheet {
 #[test]
 fn test_write_ss() {
     let mut test_sheet = Sheet::new(6, 6);
-    test_sheet.update_cell_data(1, 1, String::from("AVG(A2:D5)"));
+    test_sheet.update_cell_data(1, 1, String::from("=AVG(A2:D5)"));
     test_sheet.update_cell_data(2, 2, String::from("500"));
-    test_sheet.update_cell_data(2, 1, String::from("B1+B5"));
+    test_sheet.update_cell_data(2, 1, String::from("=B1+B5"));
     println!("{}", test_sheet.get_value(1, 1));
     let res = test_sheet.write_file("./temp/temp.ss");
     match res {

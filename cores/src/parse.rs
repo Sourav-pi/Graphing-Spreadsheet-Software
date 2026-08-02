@@ -25,7 +25,7 @@ use crate::sheet::Cell;
 #[derive(Clone, Debug, serde::Serialize, Default)]
 #[allow(clippy::identity_op)]
 pub struct CommandFlag {
-    /// Command type: 0 = value/cell, 1 = arithmetic, 2 = range function
+    /// Command type: 0 = value/cell, 1 = arithmetic, 2 = range function, 3 = text
     pub type_: B2, // 2 bits
     /// Operation code (depends on type_):
     /// - For arithmetic: 0 = add, 1 = subtract, 2 = multiply, 3 = divide
@@ -39,7 +39,8 @@ pub struct CommandFlag {
     pub error: B2, // 2 bits
     /// Division by zero flag: 1 = division by zero occurred
     pub is_div_by_zero: B1, // 1 bit
-    /// Reserved bits for future use
+    /// Whether this cell has been explicitly set via `update_cell_data`
+    /// (0 = never set / cleared, 1 = holds a number, formula, or text).
     pub is_any: B6,
 }
 
@@ -530,11 +531,11 @@ pub fn convert_to_index_int(encode: i32) -> (usize, usize) {
 pub fn unparse(cell: Cell) -> String {
     match cell.formula.flag.type_() {
         0 => {
-            // Constant
+            // Constant, or a bare cell reference (e.g. "=A1")
             if cell.formula.flag.type1() == 0 {
                 cell.formula.param1.to_string()
             } else {
-                decode_cell(cell.formula.param1)
+                format!("={}", decode_cell(cell.formula.param1))
             }
         }
         1 => {
@@ -555,7 +556,7 @@ pub fn unparse(cell: Cell) -> String {
             } else {
                 decode_cell(cell.formula.param2)
             };
-            format!("{}{}{}", left, sym, right)
+            format!("={}{}{}", left, sym, right)
         }
         2 => {
             let func = match cell.formula.flag.cmd() {
@@ -575,13 +576,17 @@ pub fn unparse(cell: Cell) -> String {
                 } else {
                     decode_cell(cell.formula.param1)
                 };
-                format!("{}({})", func, param)
+                format!("={}({})", func, param)
             } else {
                 // Range functions
                 let start = decode_cell(cell.formula.param1);
                 let end = decode_cell(cell.formula.param2);
-                format!("{}({}:{})", func, start, end)
+                format!("={}({}:{})", func, start, end)
             }
+        }
+        3 => {
+            // Literal text, stored verbatim
+            cell.text.clone()
         }
         _ => "".to_string(),
     }
@@ -736,9 +741,10 @@ mod tests {
             },
             value: 0,
             depend: Vec::new(),
+            text: String::new(),
         };
         let result = unparse(cell);
-        assert_eq!(result, "A1+B2");
+        assert_eq!(result, "=A1+B2");
     }
     #[test]
     fn test_unparse_constant() {
@@ -750,6 +756,7 @@ mod tests {
             },
             value: 42,
             depend: Vec::new(),
+            text: String::new(),
         };
         let result = unparse(cell);
         assert_eq!(result, "42");
@@ -1068,10 +1075,11 @@ mod tests {
             },
             value: 0,
             depend: Vec::new(),
+            text: String::new(),
         };
 
         let result = unparse(cell);
-        assert_eq!(result, "SUM(A1:B2)");
+        assert_eq!(result, "=SUM(A1:B2)");
     }
 
     #[test]
@@ -1089,10 +1097,11 @@ mod tests {
             },
             value: 0,
             depend: Vec::new(),
+            text: String::new(),
         };
 
         let result = unparse(cell);
-        assert_eq!(result, "SLEEP(5)");
+        assert_eq!(result, "=SLEEP(5)");
     }
 
     #[test]
@@ -1110,10 +1119,11 @@ mod tests {
             },
             value: 0,
             depend: Vec::new(),
+            text: String::new(),
         };
 
         let result = unparse(cell);
-        assert_eq!(result, "SLEEP(A1)");
+        assert_eq!(result, "=SLEEP(A1)");
     }
 
     #[test]
@@ -1129,6 +1139,7 @@ mod tests {
             },
             value: 0,
             depend: Vec::new(),
+            text: String::new(),
         };
 
         let result = unparse(cell);
@@ -1151,11 +1162,12 @@ mod tests {
             },
             value: 0,
             depend: Vec::new(),
+            text: String::new(),
         };
 
         let result = unparse(cell);
         // Should include A1 and B2 but with empty operator
-        assert_eq!(result, "A1B2");
+        assert_eq!(result, "=A1B2");
     }
 
     #[test]
@@ -1174,9 +1186,10 @@ mod tests {
             },
             value: 0,
             depend: Vec::new(),
+            text: String::new(),
         };
 
         let result = unparse(cell);
-        assert_eq!(result, "(A1:B2)");
+        assert_eq!(result, "=(A1:B2)");
     }
 }

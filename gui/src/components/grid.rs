@@ -120,6 +120,14 @@ pub fn Grid(props: GridProps) -> Element {
     let on_wheel = move |e: Event<WheelData>| {
         e.prevent_default();
 
+        // A cell's DOM node can stay genuinely focused (native caret/focus
+        // ring) partway through a scroll gesture, before virtualization has
+        // reassigned it to a different logical cell - drop focus immediately
+        // so neither ever visibly rides along with the scroll.
+        let _ = document::eval(
+            "if (document.activeElement && document.activeElement.blur) { document.activeElement.blur(); }",
+        );
+
         let (raw_x, raw_y) = match e.delta() {
             WheelDelta::Pixels(v) => (v.x, v.y),
             WheelDelta::Lines(v) => (v.x * ROW_HEIGHT, v.y * ROW_HEIGHT),

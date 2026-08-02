@@ -52,6 +52,7 @@ impl Sheet {
                         param2: 0,
                     },
                     depend: Vec::new(),
+                    text: String::new(),
                 };
             }
         }
@@ -71,7 +72,13 @@ impl Sheet {
                 if col >= self.col {
                     break;
                 }
-                self.grid[row][col].value = item.parse::<i32>().unwrap();
+                if let Ok(value) = item.parse::<i32>() {
+                    self.grid[row][col].value = value;
+                } else {
+                    self.grid[row][col].formula.flag.set_type_(3);
+                    self.grid[row][col].formula.flag.set_is_any(1);
+                    self.grid[row][col].text = item.clone();
+                }
             }
             row += 1;
         }

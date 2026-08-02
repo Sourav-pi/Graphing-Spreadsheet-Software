@@ -34,7 +34,7 @@ fn main() {
     let mut r = 1;
     let mut c = 2;
     while dependent_cells.len() < num_dependents {
-        sheet.update_cell_data(r, c, "A1+0".to_string());
+        sheet.update_cell_data(r, c, "=A1+0".to_string());
         dependent_cells.push((r, c));
         c += 1;
         if c > COLS {

@@ -74,7 +74,13 @@ impl Sheet {
             // Use the better approach mentioned in the comment
             let mut row: Vec<String> = self.grid[i]
                 .iter()
-                .map(|cell| cell.value.to_string())
+                .map(|cell| {
+                    if cell.formula.flag.type_() == 3 {
+                        cell.text.clone()
+                    } else {
+                        cell.value.to_string()
+                    }
+                })
                 .collect();
             row[0] = (i).to_string();
             writer.write_record(&row)?;

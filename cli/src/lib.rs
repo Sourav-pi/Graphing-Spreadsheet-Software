@@ -156,8 +156,17 @@ pub fn run_help(args: Vec<String>) {
                 }
                 // Convert the cell reference to indices
                 let (cell_index_row, cell_index_col) = convert_to_index(lhs.to_string());
-                let result =
-                    test_sheet.update_cell_data(cell_index_row, cell_index_col, rhs.to_string());
+                // The core engine now only auto-detects a formula when the
+                // content starts with '=' (Excel-style); since the CLI's own
+                // "CELL=CONTENT" syntax already consumes that '=' as its
+                // assignment separator, re-add it here so "A1=A2+A3" keeps
+                // being treated as a formula rather than literal text.
+                let rhs_content = format!("={}", rhs);
+                let result = test_sheet.update_cell_data(
+                    cell_index_row,
+                    cell_index_col,
+                    rhs_content,
+                );
                 time = result.time;
                 match result.error {
                     Error::InvalidInput => massage = "invalid input",

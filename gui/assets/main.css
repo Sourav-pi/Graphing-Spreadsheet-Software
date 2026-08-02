@@ -316,6 +316,8 @@ input {
     outline: none;
     text-align: center;
     font-size: 13px;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .cell-input {
@@ -327,14 +329,21 @@ input {
     color: var(--text);
     background: var(--bg);
     transition: background-color 0.1s ease, box-shadow 0.1s ease;
+    /* Suppress the native OS focus ring (WKWebView draws its own on top of
+       CSS outline:none); our .selected class is the only focus indicator. */
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .cell-input:hover {
     background-color: var(--bg-subtle);
 }
 
-.cell-input.selected,
-.cell-input:focus {
+/* Driven by app state (is_editing / is_this_cell_selected in cell.rs), not
+   :focus - virtualized cells reuse the same DOM node across scroll, so raw
+   browser focus doesn't move with the logically selected cell and would
+   paint the border on the wrong screen position. */
+.cell-input.selected {
     border: 1px solid var(--accent);
     box-shadow: inset 0 0 0 1px var(--accent);
     background-color: var(--bg);

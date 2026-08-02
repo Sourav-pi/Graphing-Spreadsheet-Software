@@ -42,17 +42,13 @@ pub fn FormulaBar() -> Element {
         let _ = sheetversion.cloned();
 
         if let Ok(sheet_locked) = sheet.cloned().lock() {
-            // Update the cell value in the Sheet object
-            let formula_in_sheet = sheet_locked
-                .get_formula(
-                    selected_cell.cloned().0 as usize,
-                    selected_cell.cloned().1 as usize,
-                )
-                .to_string();
-            if formula_in_sheet != "0" {
-                formula.set(formula_in_sheet);
+            let row = selected_cell.cloned().0;
+            let col = selected_cell.cloned().1;
+            // A never-set (or since-cleared) cell edits as blank rather than "0".
+            if sheet_locked.is_empty_cell(row, col) {
+                formula.set(String::new());
             } else {
-                formula.set("".to_string());
+                formula.set(sheet_locked.get_formula(row as usize, col as usize));
             }
         }
     });
@@ -61,12 +57,15 @@ pub fn FormulaBar() -> Element {
     let on_submit = move |e: Event<KeyboardData>| {
         if e.key() == Key::Enter {
             if let Ok(mut sheet_locked) = sheet.cloned().lock() {
-                // Update the cell value in the Sheet object
-                sheet_locked.update_cell_data(
-                    selected_cell.cloned().0 as usize,
-                    selected_cell.cloned().1 as usize,
-                    formula.cloned(),
-                );
+                let row = selected_cell.cloned().0 as usize;
+                let col = selected_cell.cloned().1 as usize;
+                if formula.cloned().is_empty() {
+                    // Submitting a blank formula clears the cell rather than
+                    // writing an empty text cell.
+                    sheet_locked.clear_cell(row, col);
+                } else {
+                    sheet_locked.update_cell_data(row, col, formula.cloned());
+                }
                 sheetversion.set(sheetversion.cloned() + 1);
             }
         }
@@ -75,12 +74,15 @@ pub fn FormulaBar() -> Element {
     // Handle formula update when input loses focus
     let on_blur = move |_| {
         if let Ok(mut sheet_locked) = sheet.cloned().lock() {
-            // Update the cell value in the Sheet object
-            sheet_locked.update_cell_data(
-                selected_cell.cloned().0 as usize,
-                selected_cell.cloned().1 as usize,
-                formula.cloned(),
-            );
+            let row = selected_cell.cloned().0 as usize;
+            let col = selected_cell.cloned().1 as usize;
+            if formula.cloned().is_empty() {
+                // Leaving the formula bar blank clears the cell rather than
+                // writing an empty text cell.
+                sheet_locked.clear_cell(row, col);
+            } else {
+                sheet_locked.update_cell_data(row, col, formula.cloned());
+            }
             sheetversion.set(sheetversion.cloned() + 1);
         }
     };
