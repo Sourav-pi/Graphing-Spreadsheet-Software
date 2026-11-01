@@ -5,10 +5,10 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
-  PKG_CONFIG_PATH: "/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"
 
 jobs:
   build:
@@ -17,25 +17,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libglib2.0-dev libcairo2-dev libatk1.0-dev libgdk-pixbuf2.0-dev libpango1.0-dev
-        sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-        sudo apt-get install -y libxkbcommon-dev libxcb-shape0-dev libxcb-xfixes0-dev
-        # Try to install WebKit2GTK (both versions for compatibility)
-        sudo apt-get install -y libwebkit2gtk-4.1-dev || sudo apt-get install -y libwebkit2gtk-4.0-dev
-        # Skip failing package if unavailable
-        sudo apt-get install -y libglib2.0-dev pkg-config libgdk-3-dev || echo "libgdk-3-dev not available, skipping..."
-    
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
       
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
       
-    - name: Build cores crate only
-      run: cd cores && cargo build
+    # These crates do not need the GUI's GTK/WebKit system dependencies.
+    - name: Build core and CLI
+      run: cargo build --locked -p cores -p cli --all-targets
       
-    - name: Run core tests
-      run: cd cores && cargo test
+    - name: Run core and CLI tests
+      run: cargo test --locked -p cores -p cli

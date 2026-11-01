@@ -1,12 +1,12 @@
 # Spreadsheet Application
 
-[![Rust](https://github.com/Sourav-pi/RUST_COP290/actions/workflows/rust.yml/badge.svg)](https://github.com/Sourav-pi/RUST_COP290/actions/workflows/rust.yml)
+[![Rust](https://github.com/Sourav-pi/Graphing-Spreadsheet-Software/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/Sourav-pi/Graphing-Spreadsheet-Software/actions/workflows/rust.yml)
 
 A feature-rich spreadsheet application built in Rust that supports both GUI and CLI interfaces.
 
 ## Prerequisites
 
-- **Rust and Cargo** (1.70+ recommended)
+- **Rust and Cargo** (1.85+ required for the Rust 2024 edition)
 - **For GUI on Linux**: Install the required dependencies:
 
   ```bash

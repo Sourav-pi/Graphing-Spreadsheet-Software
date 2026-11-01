@@ -92,8 +92,14 @@ mod tests {
 
     #[test]
     fn test_read_csv_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("input.csv");
+        std::fs::write(&path, ",A,B\n1,10,\"hello, world\"\n").unwrap();
+
         let mut test_sheet = Sheet::new(6, 6);
-        test_sheet.read_csv_file("../temp/test_output.csv").unwrap();
-        assert!(test_sheet.grid[1][1].value == 10);
+        test_sheet.read_csv_file(path.to_str().unwrap()).unwrap();
+        assert_eq!(test_sheet.grid[1][1].value, 10);
+        assert_eq!(test_sheet.grid[1][2].text, "hello, world");
+        assert_eq!(test_sheet.grid[1][2].formula.flag.type_(), 3);
     }
 }

@@ -96,10 +96,19 @@ mod tests {
 
     #[test]
     fn test_write_csv_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("output.csv");
         let mut test_sheet = Sheet::new(6, 6);
         test_sheet.update_cell_data(1, 1, String::from("10"));
-        test_sheet
-            .write_csv_file("../temp/test_output.csv")
-            .unwrap();
+        test_sheet.update_cell_data(1, 2, String::from("hello, world"));
+        test_sheet.write_csv_file(path.to_str().unwrap()).unwrap();
+
+        let mut reader = csv::Reader::from_path(&path).unwrap();
+        assert_eq!(reader.headers().unwrap().get(1), Some("A"));
+        let records = reader.records().collect::<Result<Vec<_>, _>>().unwrap();
+        assert_eq!(records.len(), 6);
+        assert_eq!(records[0].get(0), Some("1"));
+        assert_eq!(records[0].get(1), Some("10"));
+        assert_eq!(records[0].get(2), Some("hello, world"));
     }
 }

@@ -150,22 +150,19 @@ impl Sheet {
 
 #[test]
 fn test_read_ss() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("input.ss");
+    let filename = path.to_str().unwrap();
     let mut test_sheet = Sheet::new(6, 6);
     test_sheet.update_cell_data(1, 1, String::from("=AVG(A2:D5)"));
     test_sheet.update_cell_data(2, 2, String::from("500"));
     test_sheet.update_cell_data(2, 1, String::from("=B1+B5"));
-    println!("{}", test_sheet.get_value(1, 1));
-    let res = test_sheet.write_file("./temp/temp.ss");
-    match res {
-        Ok(_) => println!("ss file written successfully."),
-        Err(e) => println!("Error writing ss file: {}", e),
-    }
+    test_sheet.update_cell_data(3, 3, String::from("hello, world"));
+    test_sheet.write_file(filename).unwrap();
     let mut new_sheet = Sheet::new(6, 6);
-    let result = new_sheet.read_file("./temp/temp.ss");
-    match result {
-        Ok(()) => println!("ss file read successfully."),
-        Err(e) => println!("Error reading ss file: {}", e),
-    }
+    new_sheet.read_file(filename).unwrap();
     assert_eq!(new_sheet.get_value(2, 2), 500);
     assert_eq!(new_sheet.get_value(1, 1), 31);
+    assert_eq!(new_sheet.grid[3][3].text, "hello, world");
+    assert_eq!(new_sheet.grid[3][3].formula.flag.type_(), 3);
 }

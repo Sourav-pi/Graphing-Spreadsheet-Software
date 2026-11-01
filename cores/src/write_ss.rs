@@ -139,14 +139,21 @@ impl Sheet {
 
 #[test]
 fn test_write_ss() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("output.ss");
     let mut test_sheet = Sheet::new(6, 6);
     test_sheet.update_cell_data(1, 1, String::from("=AVG(A2:D5)"));
     test_sheet.update_cell_data(2, 2, String::from("500"));
     test_sheet.update_cell_data(2, 1, String::from("=B1+B5"));
-    println!("{}", test_sheet.get_value(1, 1));
-    let res = test_sheet.write_file("./temp/temp.ss");
-    match res {
-        Ok(_) => println!("ss file written successfully."),
-        Err(e) => println!("Error writing ss file: {}", e),
-    }
+    test_sheet.write_file(path.to_str().unwrap()).unwrap();
+
+    let mut reader = csv::Reader::from_path(&path).unwrap();
+    assert_eq!(reader.headers().unwrap().get(7), Some("text"));
+    let records = reader.records().collect::<Result<Vec<_>, _>>().unwrap();
+    assert_eq!(records.len(), 3);
+    let constant = records
+        .iter()
+        .find(|record| record.get(0) == Some("2") && record.get(1) == Some("2"))
+        .unwrap();
+    assert_eq!(constant.get(2), Some("500"));
 }

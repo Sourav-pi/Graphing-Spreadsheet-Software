@@ -697,6 +697,7 @@ dependencies = [
  "fxhash",
  "modular-bitfield",
  "serde",
+ "tempfile",
 ]
 
 [[package]]
